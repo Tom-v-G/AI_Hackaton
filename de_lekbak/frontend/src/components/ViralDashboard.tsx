@@ -181,8 +181,8 @@ export function ViralDashboard() {
       <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-6">
         <header className="flex flex-col gap-5 rounded-3xl border border-emerald-300/20 bg-black/45 p-5 shadow-[0_0_40px_rgba(45,210,110,0.1)] backdrop-blur md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="font-mono text-4xl font-black tracking-[0.12em] text-emerald-100 [text-shadow:0_0_22px_rgba(57,255,136,0.55)] md:text-6xl">THREADPULSE</h1>
-            <p className="mt-2 text-sm uppercase tracking-[0.25em] text-emerald-200/60">// De Lekbak viral CVE radar</p>
+            <h1 className="font-mono text-4xl font-black tracking-[0.12em] text-emerald-100 [text-shadow:0_0_22px_rgba(57,255,136,0.55)] md:text-6xl">THREATPULSE</h1>
+            <p className="mt-2 text-sm uppercase tracking-[0.25em] text-emerald-200/60">// de hype-hartslag van CVE's</p>
           </div>
           <div className="flex flex-col gap-3 md:items-end">
             <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.22em] text-slate-400">
@@ -203,17 +203,6 @@ export function ViralDashboard() {
         {refresh.isError ? (
           <ErrorState title="Refresh failed" message={refresh.error instanceof Error ? refresh.error.message : "Unable to refresh rankings."} />
         ) : null}
-
-        <section className="grid gap-3 rounded-2xl border border-emerald-300/15 bg-black/35 p-4 backdrop-blur md:grid-cols-3">
-          <Metric label="tracked cves" value={String(data?.items.length ?? "—")} unit="items" percent={100} />
-          <Metric
-            label="data state"
-            value={data ? (data.is_stale ? "stale" : "fresh") : "—"}
-            unit="cache"
-            percent={data?.is_stale ? 45 : 100}
-          />
-          <Metric label="source mode" value="api" unit="backend" percent={100} />
-        </section>
 
         {rankings.isLoading ? <LoadingState label="Loading viral CVE rankings…" /> : null}
         {rankings.isError ? <ErrorState message={errorMessage} onRetry={() => void rankings.refetch()} /> : null}
