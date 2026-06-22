@@ -38,3 +38,28 @@ export interface ViralCveRefreshResponse {
   rankings: ViralCveRankingResponse;
   message: string;
 }
+
+export type ThreadPulseTrend = "rising" | "cooling" | "stable";
+
+export type ThreadPulseSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "UNKNOWN";
+
+export interface ThreadPulseVulnerability {
+  rank: number;
+  cveId: string;
+  name?: string;
+  buzz: number;
+  trend: ThreadPulseTrend;
+  news: number;
+  social: number;
+  researchers: number;
+  source: number;
+  sourceTypes: SourceType[];
+  sourceLabel: string;
+  severity: ThreadPulseSeverity;
+  flags: string[];
+  summary: string;
+  riskFor: string;
+  spark: number[];
+  firstSeenAt: string | null;
+  lastSeenAt: string | null;
+}
