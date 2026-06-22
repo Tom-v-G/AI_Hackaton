@@ -8,6 +8,7 @@ import type {
 
 const SOURCE_LABELS: Record<SourceType, string> = {
   reddit: "Reddit",
+  bluesky: "Bluesky",
   mastodon: "Mastodon",
   hacker_news: "The Hacker News",
 };
