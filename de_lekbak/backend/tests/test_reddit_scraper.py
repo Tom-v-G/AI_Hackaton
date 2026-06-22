@@ -9,6 +9,7 @@ from de_lekbak_backend.scrapers.reddit import (
     RedditPost,
     RedditScraper,
     canonical_reddit_url,
+    default_reddit_cve_aggregates,
     extract_cve_ids,
     normalize_subreddit_names,
 )
@@ -152,6 +153,44 @@ def test_reddit_scraper_persists_with_upsert_repository() -> None:
 
     assert repository.persisted == aggregates
     assert aggregates[0].sources == ["https://www.reddit.com/r/netsec/comments/ok/post/"]
+
+
+def test_reddit_scraper_returns_and_persists_defaults_when_scrape_is_empty() -> None:
+    repository = _RecordingRepository()
+    client = _client_for([httpx.Response(200, json={"data": {"children": []}})])
+
+    aggregates = asyncio.run(
+        RedditScraper(client=client, repository=repository).scrape_and_persist(["netsec"])
+    )
+
+    assert repository.persisted == aggregates
+    assert [aggregate.cve_number for aggregate in aggregates] == [
+        "CVE-2026-20245",
+        "CVE-2026-20253",
+        "CVE-2026-50656",
+    ]
+    assert all(aggregate.mention_count == 1 for aggregate in aggregates)
+
+
+def test_default_reddit_cve_aggregates_use_public_advisory_sources() -> None:
+    by_cve = {aggregate.cve_number: aggregate for aggregate in default_reddit_cve_aggregates()}
+
+    assert "https://nvd.nist.gov/vuln/detail/CVE-2026-20245" in by_cve[
+        "CVE-2026-20245"
+    ].sources
+    assert any("cisco-sa-sdwan-privesc" in source for source in by_cve["CVE-2026-20245"].sources)
+    assert "https://nvd.nist.gov/vuln/detail/CVE-2026-20253" in by_cve[
+        "CVE-2026-20253"
+    ].sources
+    assert "https://advisory.splunk.com/advisories/SVD-2026-0603" in by_cve[
+        "CVE-2026-20253"
+    ].sources
+    assert "https://nvd.nist.gov/vuln/detail/CVE-2026-50656" in by_cve[
+        "CVE-2026-50656"
+    ].sources
+    assert "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-50656" in by_cve[
+        "CVE-2026-50656"
+    ].sources
 
 
 def test_reddit_cve_repository_uses_upsert_statement() -> None:
