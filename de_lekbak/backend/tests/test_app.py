@@ -122,8 +122,14 @@ def test_bluesky_dashboard_endpoints_return_repository_backed_data() -> None:
                 items=[BlueskyActiveAuthorItem(author_handle="alice.test", post_count=7)]
             )
 
-        async def enriched_cves(self, limit: int = 25) -> BlueskyEnrichedCvesResponse:
+        async def enriched_cves(
+            self,
+            limit: int = 25,
+            *,
+            nvd_only: bool = False,
+        ) -> BlueskyEnrichedCvesResponse:
             assert limit == 6
+            assert nvd_only is True
             observed_at = datetime(2026, 6, 22, tzinfo=UTC)
             return BlueskyEnrichedCvesResponse(
                 items=[
@@ -154,7 +160,7 @@ def test_bluesky_dashboard_endpoints_return_repository_backed_data() -> None:
     top_posts = client.get("/api/v1/bluesky/top-posts?limit=2")
     counts = client.get("/api/v1/bluesky/cve-post-counts")
     authors = client.get("/api/v1/bluesky/active-authors?limit=4")
-    enriched = client.get("/api/v1/bluesky/enriched-cves?limit=6")
+    enriched = client.get("/api/v1/bluesky/enriched-cves?limit=6&nvd_only=true")
 
     assert trending.status_code == 200
     assert trending.json()["items"] == [{"cve_id": "CVE-2026-1234", "mention_count": 3}]
@@ -405,6 +411,9 @@ def test_bluesky_repository_analytics_queries_reference_required_dimensions() ->
         repository.build_most_active_authors_query().compile(dialect=postgresql.dialect())
     )
     enriched = str(repository.build_enriched_cves_query().compile(dialect=postgresql.dialect()))
+    enriched_nvd_only = str(
+        repository.build_enriched_cves_query(nvd_only=True).compile(dialect=postgresql.dialect())
+    )
 
     assert "unnest" in trending
     assert "created_at" in trending
@@ -412,13 +421,23 @@ def test_bluesky_repository_analytics_queries_reference_required_dimensions() ->
     assert "author_handle" in authors
     assert "LEFT JOIN cves" in enriched
     assert "LEFT JOIN best_metrics" in enriched
+    assert "LEFT JOIN metric_details" in enriched
+    assert "LEFT JOIN reference_details" in enriched
     assert "description_en" in enriched
+    assert "raw_nvd" in enriched
+    assert "WHERE cves.id IS NOT NULL" in enriched_nvd_only
 
 
 def test_bluesky_analytics_service_maps_nvd_enrichment() -> None:
     class Repository:
-        async def enriched_cves(self, limit: int = 25) -> list[EnrichedBlueskyCve]:
+        async def enriched_cves(
+            self,
+            limit: int = 25,
+            *,
+            nvd_only: bool = False,
+        ) -> list[EnrichedBlueskyCve]:
             assert limit == 1
+            assert nvd_only is True
             observed_at = datetime(2026, 6, 22, tzinfo=UTC)
             return [
                 EnrichedBlueskyCve(
@@ -427,25 +446,40 @@ def test_bluesky_analytics_service_maps_nvd_enrichment() -> None:
                     latest_mention_at=observed_at,
                     top_engagement_score=10.0,
                     nvd_found=True,
+                    nvd_source_identifier="nvd@nist.gov",
+                    nvd_vuln_status="Analyzed",
                     nvd_severity="HIGH",
                     nvd_base_score=8.1,
+                    nvd_vector_string="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    nvd_metric_type="primary",
                     nvd_description="Example vulnerability",
                     nvd_published_at=observed_at,
                     nvd_modified_at=observed_at,
+                    nvd_ingested_at=observed_at,
+                    nvd_created_at=observed_at,
+                    nvd_updated_at=observed_at,
+                    nvd_cwe_ids=["CWE-79"],
                     affected_vendors=["Example"],
                     affected_products=["Product"],
+                    nvd_references=[{"url": "https://example.test", "source": "NVD", "tags": []}],
+                    nvd_metrics=[{"version": "3.1", "base_score": 8.1}],
+                    raw_nvd={"id": "CVE-2026-1234"},
                 )
             ]
 
     from de_lekbak_backend.services.bluesky_analytics_service import BlueskyAnalyticsService
 
     response = asyncio.run(
-        BlueskyAnalyticsService(Repository()).enriched_cves(1)  # type: ignore[arg-type]
+        BlueskyAnalyticsService(Repository()).enriched_cves(1, nvd_only=True)  # type: ignore[arg-type]
     )
 
     assert response.items[0].cve_id == "CVE-2026-1234"
     assert response.items[0].nvd.found is True
     assert response.items[0].nvd.base_score == 8.1
+    assert response.items[0].nvd.cwe_ids == ["CWE-79"]
+    assert response.items[0].nvd.references[0]["url"] == "https://example.test"
+    assert response.items[0].nvd.metrics[0]["version"] == "3.1"
+    assert response.items[0].nvd.raw_nvd == {"id": "CVE-2026-1234"}
 
 
 def test_async_session_dependency_commits_on_success(monkeypatch: pytest.MonkeyPatch) -> None:

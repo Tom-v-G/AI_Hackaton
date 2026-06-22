@@ -53,6 +53,7 @@ async def list_active_authors(
 @router.get("/enriched-cves", response_model=BlueskyEnrichedCvesResponse)
 async def list_enriched_cves(
     limit: LimitQuery = 25,
+    nvd_only: bool = False,
     service: BlueskyAnalyticsService = bluesky_analytics_service_dependency,
 ) -> BlueskyEnrichedCvesResponse:
-    return await service.enriched_cves(limit)
+    return await service.enriched_cves(limit, nvd_only=nvd_only)
