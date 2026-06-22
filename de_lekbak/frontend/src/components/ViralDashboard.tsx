@@ -1,5 +1,6 @@
 import { ApiError } from "@/api/client";
 import { toThreadPulseVulnerabilities } from "@/adapters/threadPulse";
+import { MatrixRain } from "@/components/MatrixRain";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { LoadingState } from "@/components/common/LoadingState";
@@ -59,11 +60,8 @@ function sparkPoints(spark: number[]): string {
 function MatrixBackground() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#12452a_0%,transparent_38%),linear-gradient(180deg,rgba(2,6,4,0.3),#020604_72%)]" />
-      <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(45,210,110,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(45,210,110,0.12)_1px,transparent_1px)] [background-size:28px_28px]" />
-      <div className="absolute -top-24 left-6 h-[125%] w-24 rotate-6 bg-[linear-gradient(180deg,transparent,rgba(45,210,110,0.22),transparent)] blur-sm" />
-      <div className="absolute -top-10 right-20 h-[115%] w-16 -rotate-3 bg-[linear-gradient(180deg,transparent,rgba(103,232,249,0.16),transparent)] blur-sm" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,4,0.88)_78%)]" />
+      <MatrixRain />
+      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,rgba(2,6,4,0.05),rgba(2,6,4,0.62)_80%)]" />
     </div>
   );
 }
@@ -76,8 +74,8 @@ function Metric({ label, value, unit, percent }: { label: string; value: string;
         <span className="font-mono text-2xl font-black text-emerald-100">{value}</span>
         <span className="pb-1 text-xs uppercase tracking-widest text-slate-500">{unit}</span>
       </div>
-      <div className="mt-3 h-1.5 rounded-full bg-emerald-950/80">
-        <div className="h-full rounded-full bg-emerald-300 shadow-[0_0_16px_rgba(110,231,183,0.85)]" style={{ width: `${percent}%` }} />
+      <div className="mt-3 h-1.5 rounded-sm bg-emerald-950/80">
+        <div className="h-full rounded-sm bg-emerald-300 shadow-[0_0_16px_rgba(57,255,136,0.85)]" style={{ width: `${percent}%` }} />
       </div>
     </div>
   );
@@ -89,7 +87,7 @@ function Sparkline({ spark }: { spark: number[] }) {
       <polyline
         points={sparkPoints(spark)}
         fill="none"
-        stroke="rgb(110 231 183)"
+        stroke="rgb(57 255 136)"
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="2.4"
@@ -102,17 +100,17 @@ function VulnerabilityHero({ item, maxes }: { item: ThreadPulseVulnerability; ma
   const trend = TREND_STYLE[item.trend];
 
   return (
-    <article className="relative overflow-hidden rounded-[2rem] border border-emerald-300/25 bg-[#07120c]/90 p-6 shadow-[0_0_55px_rgba(45,210,110,0.18)] md:p-8">
+    <article className="relative overflow-hidden rounded-lg border border-emerald-300/25 bg-[#07120c]/90 p-6 shadow-[0_0_55px_rgba(45,210,110,0.18)] md:p-8">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-200 to-transparent" />
       <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.28em]">
-        <span className="rounded-full border border-emerald-300/40 bg-emerald-300/10 px-3 py-1 text-emerald-100">#{item.rank} · hottest</span>
+        <span className="rounded border border-emerald-300/40 bg-emerald-300/10 px-3 py-1 text-emerald-100">#{item.rank} · hottest</span>
         <span className={trend.className}>{trend.symbol} {trend.label}</span>
         <span className="font-mono text-emerald-200/70">{item.cveId}</span>
       </div>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
         <div>
-          <h2 className="font-mono text-4xl font-black tracking-tight text-emerald-50 md:text-6xl">{item.name ?? item.cveId}</h2>
+          <h2 className="font-mono text-4xl font-black tracking-tight text-emerald-50 [text-shadow:0_0_22px_rgba(57,255,136,0.5)] md:text-6xl">{item.name ?? item.cveId}</h2>
           <p className="mt-3 text-sm uppercase tracking-[0.28em] text-slate-400">
             <span className={SEVERITY_STYLE[item.severity]}>{item.severity}</span>
             {item.flags.length > 0 ? ` · ${item.flags.join(" · ")}` : ""}
@@ -183,19 +181,19 @@ export function ViralDashboard() {
       <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-6">
         <header className="flex flex-col gap-5 rounded-3xl border border-emerald-300/20 bg-black/45 p-5 shadow-[0_0_40px_rgba(45,210,110,0.1)] backdrop-blur md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="font-mono text-4xl font-black tracking-[0.12em] text-emerald-100 md:text-6xl">THREADPULSE</h1>
+            <h1 className="font-mono text-4xl font-black tracking-[0.12em] text-emerald-100 [text-shadow:0_0_22px_rgba(57,255,136,0.55)] md:text-6xl">THREADPULSE</h1>
             <p className="mt-2 text-sm uppercase tracking-[0.25em] text-emerald-200/60">// De Lekbak viral CVE radar</p>
           </div>
           <div className="flex flex-col gap-3 md:items-end">
             <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.22em] text-slate-400">
-              <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1 text-emerald-100">● online</span>
+              <span className="rounded border border-emerald-300/25 bg-emerald-300/10 px-3 py-1 text-emerald-100">● online</span>
               <span>{formatTimestamp(data?.last_refreshed_at ?? null)}</span>
             </div>
             <button
               type="button"
               onClick={() => refresh.mutate()}
               disabled={refresh.isPending}
-              className="rounded-full border border-emerald-200/50 bg-emerald-300 px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-[#020604] shadow-[0_0_24px_rgba(110,231,183,0.35)] transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded border border-emerald-200/50 bg-emerald-300 px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-[#020604] shadow-[0_0_24px_rgba(57,255,136,0.35)] transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {refresh.isPending ? "Refreshing…" : "Manual refresh"}
             </button>
