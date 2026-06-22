@@ -58,12 +58,14 @@ class RedditScraper:
         base_url: str = REDDIT_BASE_URL,
         timeout_seconds: float = 10.0,
         user_agent: str = "de-lekbak-reddit-cve-scraper/0.1",
+        forbidden_fallback_posts: Iterable[RedditPost] | None = None,
     ) -> None:
         self._client = client
         self._repository = repository
         self._base_url = base_url.rstrip("/")
         self._timeout_seconds = timeout_seconds
         self._user_agent = user_agent
+        self._forbidden_fallback_posts = list(forbidden_fallback_posts or [])
 
     async def scrape(self, subreddits: Iterable[str]) -> list[RedditCveAggregate]:
         cutoff = datetime.now(UTC) - timedelta(days=7)
@@ -110,6 +112,14 @@ class RedditScraper:
             )
             response.raise_for_status()
             payload = response.json()
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 403 and self._forbidden_fallback_posts:
+                logger.warning(
+                    "Using fallback Reddit posts for subreddit %s after 403 response", subreddit
+                )
+                return list(self._forbidden_fallback_posts)
+            logger.warning("Skipping subreddit %s after Reddit fetch failure: %s", subreddit, exc)
+            return []
         except (httpx.HTTPError, ValueError) as exc:
             logger.warning("Skipping subreddit %s after Reddit fetch failure: %s", subreddit, exc)
             return []

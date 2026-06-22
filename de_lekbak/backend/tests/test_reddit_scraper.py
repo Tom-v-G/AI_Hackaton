@@ -6,6 +6,7 @@ import httpx
 from de_lekbak_backend.repositories.reddit_cve_repository import RedditCveRepository
 from de_lekbak_backend.scrapers.reddit import (
     RedditCveAggregate,
+    RedditPost,
     RedditScraper,
     canonical_reddit_url,
     extract_cve_ids,
@@ -103,6 +104,24 @@ def test_reddit_scraper_skips_failed_subreddits_and_processes_successes() -> Non
     aggregates = asyncio.run(RedditScraper(client=client).scrape(["private", "netsec"]))
 
     assert [aggregate.cve_number for aggregate in aggregates] == ["CVE-2024-1111"]
+
+
+def test_reddit_scraper_can_use_fallback_posts_for_forbidden_responses() -> None:
+    now = datetime.now(UTC)
+    client = _client_for([httpx.Response(403, json={"message": "blocked"})])
+    fallback_post = RedditPost(
+        canonical_url="https://www.reddit.com/r/netsec/comments/fallback/post/",
+        created_at=now,
+        title="Fallback CVE-2024-4444",
+        selftext="",
+    )
+
+    aggregates = asyncio.run(
+        RedditScraper(client=client, forbidden_fallback_posts=[fallback_post]).scrape(["netsec"])
+    )
+
+    assert [aggregate.cve_number for aggregate in aggregates] == ["CVE-2024-4444"]
+    assert aggregates[0].sources == ["https://www.reddit.com/r/netsec/comments/fallback/post/"]
 
 
 def test_reddit_scraper_persists_with_upsert_repository() -> None:
