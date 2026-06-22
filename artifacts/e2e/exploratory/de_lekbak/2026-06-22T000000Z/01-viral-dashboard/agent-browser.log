@@ -1,0 +1,83 @@
+artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/exploratory.sh: line 13: agent-browser: command not found
+✓ De Lekbak Viral CVE Dashboard
+  http://127.0.0.1:18082/
+✓ Done
+- generic "De LekbakViral CVE DashboardStandalone dashboard shell for ranking CVEs mentioned on Reddit, Mastodo" [ref=e1] clickable [onclick]
+  - heading "Viral CVE Dashboard" [level=1, ref=e2]
+  - button "Manual refresh" [ref=e3]
+✓ Screenshot saved to /home/tom/Projects/AI_Hackaton/artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/page-assertion.png
+✓ Done
+✓ Done
+- generic "De LekbakViral CVE DashboardStandalone dashboard shell for ranking CVEs mentioned on Reddit, Mastodo" [ref=e1] clickable [onclick]
+  - heading "Viral CVE Dashboard" [level=1, ref=e3]
+  - button "Manual refresh" [ref=e4]
+  - heading "Refresh failed" [level=3, ref=e2]
+✓ Screenshot saved to /home/tom/Projects/AI_Hackaton/artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/after-refresh.png
+DE LEKBAK
+
+Viral CVE Dashboard
+
+Standalone dashboard shell for ranking CVEs mentioned on Reddit, Mastodon, and The Hacker News RSS.
+
+Manual refresh
+Refresh failed
+
+Failed to fetch
+
+Last refreshed
+
+Not refreshed yet
+
+Tracked CVEs
+
+—
+
+Data state
+
+Fresh
+
+Loading viral CVE rankings…
+✓ De Lekbak Viral CVE Dashboard
+  http://127.0.0.1:18082/
+✓ Done
+- generic "De LekbakViral CVE DashboardStandalone dashboard shell for ranking CVEs mentioned on Reddit, Mastodo" [ref=e1] clickable [onclick]
+  - heading "Viral CVE Dashboard" [level=1, ref=e3]
+  - button "Manual refresh" [ref=e4]
+  - heading "No viral CVEs detected yet" [level=3, ref=e2]
+✓ Screenshot saved to /home/tom/Projects/AI_Hackaton/artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/page-assertion.png
+✓ Done
+✓ Done
+- generic "De LekbakViral CVE DashboardStandalone dashboard shell for ranking CVEs mentioned on Reddit, Mastodo" [ref=e1] clickable [onclick]
+  - heading "Viral CVE Dashboard" [level=1, ref=e3]
+  - button "Manual refresh" [ref=e4]
+  - heading "No viral CVEs detected yet" [level=3, ref=e2]
+✓ Screenshot saved to /home/tom/Projects/AI_Hackaton/artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/after-refresh.png
+DE LEKBAK
+
+Viral CVE Dashboard
+
+Standalone dashboard shell for ranking CVEs mentioned on Reddit, Mastodon, and The Hacker News RSS.
+
+Manual refresh
+
+Last refreshed
+
+Jun 22, 2026, 11:46 AM
+
+Tracked CVEs
+
+0
+
+Data state
+
+Fresh
+
+No viral CVEs detected yet
+
+Use manual refresh after source ingestion is connected. CVEs can still appear here without NVD enrichment.
+✓ Recording started
+✓ Recording started: /home/tom/Projects/AI_Hackaton/artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/refresh.webm
+✓ Done
+✓ Done
+✗ CDP error (Tracing.end): Tracing is not started
+✓ Recording saved to /home/tom/Projects/AI_Hackaton/artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/refresh.webm

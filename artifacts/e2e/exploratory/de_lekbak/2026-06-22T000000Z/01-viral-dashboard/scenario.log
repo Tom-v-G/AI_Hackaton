@@ -1,0 +1,27 @@
+[2026-06-22T11:45:30+02:00] Open de_lekbak dashboard
+[2026-06-22T11:45:30+02:00] agent-browser open http://127.0.0.1:18082
+[2026-06-22T11:45:51+02:00] Open de_lekbak dashboard
+[2026-06-22T11:45:51+02:00] npx --yes agent-browser open http://127.0.0.1:18082
+[2026-06-22T11:45:53+02:00] npx --yes agent-browser wait --load networkidle
+[2026-06-22T11:45:55+02:00] npx --yes agent-browser snapshot -i
+[2026-06-22T11:45:55+02:00] npx --yes agent-browser screenshot --full /home/tom/Projects/AI_Hackaton/artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/page-assertion.png
+[2026-06-22T11:45:56+02:00] Click manual refresh
+[2026-06-22T11:45:56+02:00] npx --yes agent-browser find role button click --name Manual refresh
+[2026-06-22T11:45:57+02:00] npx --yes agent-browser wait --load networkidle
+[2026-06-22T11:45:58+02:00] npx --yes agent-browser snapshot -i
+[2026-06-22T11:45:59+02:00] npx --yes agent-browser screenshot --full /home/tom/Projects/AI_Hackaton/artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/after-refresh.png
+[2026-06-22T11:45:59+02:00] Capture visible page text
+[2026-06-22T11:45:59+02:00] npx --yes agent-browser get text body
+[2026-06-22T11:46:37+02:00] Open de_lekbak dashboard
+[2026-06-22T11:46:37+02:00] npx --yes agent-browser open http://127.0.0.1:18082
+[2026-06-22T11:46:38+02:00] npx --yes agent-browser wait --load networkidle
+[2026-06-22T11:46:40+02:00] npx --yes agent-browser snapshot -i
+[2026-06-22T11:46:40+02:00] npx --yes agent-browser screenshot --full /home/tom/Projects/AI_Hackaton/artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/page-assertion.png
+[2026-06-22T11:46:41+02:00] Click manual refresh
+[2026-06-22T11:46:41+02:00] npx --yes agent-browser find role button click --name Manual refresh
+[2026-06-22T11:46:41+02:00] npx --yes agent-browser wait --load networkidle
+[2026-06-22T11:46:43+02:00] npx --yes agent-browser snapshot -i
+[2026-06-22T11:46:44+02:00] npx --yes agent-browser screenshot --full /home/tom/Projects/AI_Hackaton/artifacts/e2e/exploratory/de_lekbak/2026-06-22T000000Z/01-viral-dashboard/after-refresh.png
+[2026-06-22T11:46:44+02:00] Capture visible page text
+[2026-06-22T11:46:44+02:00] npx --yes agent-browser get text body
+[2026-06-22T11:47:10+02:00] capture trace/video refresh evidence
