@@ -1,11 +1,12 @@
 DOCKER_COMPOSE ?= docker compose
 
-.PHONY: help setup backend-setup frontend-setup db-up db-wait migrate
+.PHONY: help setup backend-setup backend-dev frontend-setup db-up db-wait migrate
 
 help:
 	@printf "Available targets:\n"
 	@printf "  setup          Install dependencies, start Postgres, wait, and run migrations\n"
 	@printf "  backend-setup  Synchronize backend dependencies with uv\n"
+	@printf "  backend-dev    Start the FastAPI backend with reload\n"
 	@printf "  frontend-setup Install frontend dependencies with npm ci\n"
 	@printf "  db-up          Start local Postgres with Docker Compose\n"
 	@printf "  db-wait        Wait until local Postgres accepts connections\n"
@@ -20,6 +21,9 @@ setup:
 
 backend-setup:
 	cd backend && uv sync --all-extras --dev
+
+backend-dev:
+	cd backend && uv run uvicorn de_lekbak_backend.main:app --reload
 
 frontend-setup:
 	cd frontend && npm ci

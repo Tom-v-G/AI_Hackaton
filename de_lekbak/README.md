@@ -30,6 +30,7 @@ Useful setup targets:
 
 ```bash
 make backend-setup  # uv sync --all-extras --dev in backend/
+make backend-dev    # start FastAPI backend with reload
 make frontend-setup # npm ci in frontend/
 make db-up          # docker compose up -d postgres
 make db-wait        # wait for Postgres readiness
@@ -41,8 +42,7 @@ The default setup path is non-destructive; it does not drop or reset the local d
 Backend:
 
 ```bash
-cd backend
-uv run uvicorn de_lekbak_backend.main:app --reload
+make backend-dev
 ```
 
 Frontend:
