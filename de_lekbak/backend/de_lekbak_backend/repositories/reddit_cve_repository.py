@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from datetime import datetime
 from typing import Protocol
 
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,6 +32,12 @@ class RedditCveRepository:
                 },
             )
             await self._session.execute(update_statement)
+
+    async def list_trending(self) -> list[RedditCve]:
+        result = await self._session.execute(
+            select(RedditCve).order_by(RedditCve.mention_count.desc(), RedditCve.last_seen.desc())
+        )
+        return list(result.scalars().all())
 
 
 class RedditCveAggregateLike(Protocol):

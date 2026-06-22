@@ -3,6 +3,7 @@ import asyncio
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
+from uuid import UUID
 
 import httpx
 import pytest
@@ -10,6 +11,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from de_lekbak_backend.api.v1.reddit import get_reddit_service
 from de_lekbak_backend.core.config import Settings
 from de_lekbak_backend.db import models  # noqa: F401
 from de_lekbak_backend.db import session as db_session
@@ -21,6 +23,7 @@ from de_lekbak_backend.repositories.bluesky_mention_repository import (
     BlueskyMentionRepository,
     EnrichedBlueskyCve,
 )
+from de_lekbak_backend.schemas.reddit import RedditCveEntry, RedditTrendingResponse
 from de_lekbak_backend.services.bluesky_analytics_service import get_bluesky_analytics_service
 from de_lekbak_backend.services.bluesky_threat_intel_service import BlueskyThreatIntelService
 from de_lekbak_backend.services.threat_intel import BlueskySearchProvider, ThreatIntelPost
@@ -174,6 +177,51 @@ def test_bluesky_dashboard_endpoint_limits_are_validated() -> None:
     response = client.get("/api/v1/bluesky/trending-cves?limit=0")
 
     assert response.status_code == 422
+
+
+def test_reddit_trending_endpoint_refreshes_and_returns_database_entries() -> None:
+    app = create_app()
+    observed_subreddits: list[str] = []
+    now = datetime(2026, 6, 22, tzinfo=UTC)
+
+    class StubRedditService:
+        async def refresh_trending(self, subreddits: list[str]) -> RedditTrendingResponse:
+            observed_subreddits.extend(subreddits)
+            return RedditTrendingResponse(
+                items=[
+                    RedditCveEntry(
+                        id=UUID("00000000-0000-0000-0000-000000000001"),
+                        cve_number="CVE-2026-1234",
+                        mention_count=3,
+                        first_seen=now,
+                        last_seen=now,
+                        sources=["https://www.reddit.com/r/netsec/comments/abc/post/"],
+                        created_at=now,
+                        updated_at=now,
+                    )
+                ]
+            )
+
+    app.dependency_overrides[get_reddit_service] = StubRedditService
+    client = TestClient(app)
+
+    response = client.get("/api/v1/reddit/trending?subreddits=netsec&subreddits=cybersecurity")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert observed_subreddits == ["netsec", "cybersecurity"]
+    assert body["items"] == [
+        {
+            "id": "00000000-0000-0000-0000-000000000001",
+            "cve_number": "CVE-2026-1234",
+            "mention_count": 3,
+            "first_seen": "2026-06-22T00:00:00Z",
+            "last_seen": "2026-06-22T00:00:00Z",
+            "sources": ["https://www.reddit.com/r/netsec/comments/abc/post/"],
+            "created_at": "2026-06-22T00:00:00Z",
+            "updated_at": "2026-06-22T00:00:00Z",
+        }
+    ]
 
 
 def test_database_settings_use_de_lekbak_env_prefix(monkeypatch: pytest.MonkeyPatch) -> None:
