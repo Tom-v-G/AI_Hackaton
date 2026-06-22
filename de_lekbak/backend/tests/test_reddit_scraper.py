@@ -165,31 +165,31 @@ def test_reddit_scraper_returns_and_persists_defaults_when_scrape_is_empty() -> 
 
     assert repository.persisted == aggregates
     assert [aggregate.cve_number for aggregate in aggregates] == [
-        "CVE-2026-20245",
-        "CVE-2026-20253",
-        "CVE-2026-50656",
+        "CVE-2025-71348",
+        "CVE-2026-12806",
+        "CVE-2026-56382",
     ]
-    assert all(aggregate.mention_count == 1 for aggregate in aggregates)
+    assert [aggregate.mention_count for aggregate in aggregates] == [10, 1, 3]
 
 
 def test_default_reddit_cve_aggregates_use_public_advisory_sources() -> None:
     by_cve = {aggregate.cve_number: aggregate for aggregate in default_reddit_cve_aggregates()}
 
-    assert "https://nvd.nist.gov/vuln/detail/CVE-2026-20245" in by_cve[
-        "CVE-2026-20245"
+    assert "https://nvd.nist.gov/vuln/detail/CVE-2025-71348" in by_cve[
+        "CVE-2025-71348"
     ].sources
-    assert any("cisco-sa-sdwan-privesc" in source for source in by_cve["CVE-2026-20245"].sources)
-    assert "https://nvd.nist.gov/vuln/detail/CVE-2026-20253" in by_cve[
-        "CVE-2026-20253"
+    assert any("cisco-sa-sdwan-privesc" in source for source in by_cve["CVE-2025-71348"].sources)
+    assert "https://nvd.nist.gov/vuln/detail/CVE-2026-12806" in by_cve[
+        "CVE-2026-12806"
     ].sources
     assert "https://advisory.splunk.com/advisories/SVD-2026-0603" in by_cve[
-        "CVE-2026-20253"
+        "CVE-2026-12806"
     ].sources
-    assert "https://nvd.nist.gov/vuln/detail/CVE-2026-50656" in by_cve[
-        "CVE-2026-50656"
+    assert "https://nvd.nist.gov/vuln/detail/CVE-2026-56382" in by_cve[
+        "CVE-2026-56382"
     ].sources
-    assert "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-50656" in by_cve[
-        "CVE-2026-50656"
+    assert "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-56382" in by_cve[
+        "CVE-2026-56382"
     ].sources
 
 

@@ -6,6 +6,7 @@ Standalone hackathon app for tracking CVEs that are currently gaining attention 
 
 - `backend/` - independent FastAPI API for viral CVE rankings.
 - `frontend/` - independent Vite/React dashboard shell.
+- `docs/architecture-flow.md` - Mermaid architecture flow for prototype demonstrations.
 
 The app is intentionally owned by `de_lekbak` and does not import from or require the existing `cve-intelligence` project at runtime.
 

@@ -179,40 +179,40 @@ def default_reddit_cve_aggregates() -> list[RedditCveAggregate]:
 
     return [
         RedditCveAggregate(
-            cve_number="CVE-2026-20245",
-            mention_count=1,
+            cve_number="CVE-2025-71348",
+            mention_count=10,
             first_seen=datetime(2026, 6, 4, tzinfo=UTC),
             last_seen=datetime(2026, 6, 17, tzinfo=UTC),
             sources=[
-                f"{NVD_BASE_URL}/CVE-2026-20245",
+                f"{NVD_BASE_URL}/CVE-2025-71348",
                 "https://sec.cloudapps.cisco.com/security/center/content/"
                 "CiscoSecurityAdvisory/cisco-sa-sdwan-privesc-4uxFrdzx",
                 "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?"
-                "field_cve=CVE-2026-20245",
+                "field_cve=CVE-2025-71348",
             ],
         ),
         RedditCveAggregate(
-            cve_number="CVE-2026-20253",
+            cve_number="CVE-2026-12806",
             mention_count=1,
             first_seen=datetime(2026, 6, 10, tzinfo=UTC),
             last_seen=datetime(2026, 6, 19, tzinfo=UTC),
             sources=[
-                f"{NVD_BASE_URL}/CVE-2026-20253",
+                f"{NVD_BASE_URL}/CVE-2026-12806",
                 "https://advisory.splunk.com/advisories/SVD-2026-0603",
                 "https://labs.watchtowr.com/why-use-app-level-auth-when-every-database-has-auth-"
-                "splunk-enterprise-cve-2026-20253-pre-auth-rce/",
+                "splunk-enterprise-cve-2026-12806-pre-auth-rce/",
                 "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?"
-                "field_cve=CVE-2026-20253",
+                "field_cve=CVE-2026-12806",
             ],
         ),
         RedditCveAggregate(
-            cve_number="CVE-2026-50656",
-            mention_count=1,
+            cve_number="CVE-2026-56382",
+            mention_count=3,
             first_seen=datetime(2026, 6, 16, tzinfo=UTC),
             last_seen=datetime(2026, 6, 17, tzinfo=UTC),
             sources=[
-                f"{NVD_BASE_URL}/CVE-2026-50656",
-                "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-50656",
+                f"{NVD_BASE_URL}/CVE-2026-56382",
+                "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-56382",
                 "https://github.com/MSNightmare/RoguePlanet",
             ],
         ),
