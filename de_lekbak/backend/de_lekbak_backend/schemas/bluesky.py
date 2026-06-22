@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -56,13 +57,24 @@ class BlueskyActiveAuthorsResponse(BaseModel):
 
 class BlueskyNvdEnrichment(BaseModel):
     found: bool
+    source_identifier: str | None = None
+    vuln_status: str | None = None
     severity: str | None = None
     base_score: float | None = None
+    vector_string: str | None = None
+    metric_type: str | None = None
     description: str | None = None
     published_at: datetime | None = None
     modified_at: datetime | None = None
+    ingested_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    cwe_ids: list[str] = Field(default_factory=list)
     affected_vendors: list[str] = Field(default_factory=list)
     affected_products: list[str] = Field(default_factory=list)
+    references: list[dict[str, Any]] = Field(default_factory=list)
+    metrics: list[dict[str, Any]] = Field(default_factory=list)
+    raw_nvd: dict[str, Any] | None = None
 
 
 class BlueskyEnrichedCveItem(BaseModel):

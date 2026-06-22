@@ -56,8 +56,13 @@ class BlueskyAnalyticsService:
             ]
         )
 
-    async def enriched_cves(self, limit: int = 25) -> BlueskyEnrichedCvesResponse:
-        rows = await self._repository.enriched_cves(limit)
+    async def enriched_cves(
+        self,
+        limit: int = 25,
+        *,
+        nvd_only: bool = False,
+    ) -> BlueskyEnrichedCvesResponse:
+        rows = await self._repository.enriched_cves(limit, nvd_only=nvd_only)
         return BlueskyEnrichedCvesResponse(
             items=[
                 BlueskyEnrichedCveItem(
@@ -67,13 +72,24 @@ class BlueskyAnalyticsService:
                     top_engagement_score=row.top_engagement_score,
                     nvd=BlueskyNvdEnrichment(
                         found=row.nvd_found,
+                        source_identifier=row.nvd_source_identifier,
+                        vuln_status=row.nvd_vuln_status,
                         severity=row.nvd_severity,
                         base_score=row.nvd_base_score,
+                        vector_string=row.nvd_vector_string,
+                        metric_type=row.nvd_metric_type,
                         description=row.nvd_description,
                         published_at=row.nvd_published_at,
                         modified_at=row.nvd_modified_at,
+                        ingested_at=row.nvd_ingested_at,
+                        created_at=row.nvd_created_at,
+                        updated_at=row.nvd_updated_at,
+                        cwe_ids=row.nvd_cwe_ids,
                         affected_vendors=row.affected_vendors,
                         affected_products=row.affected_products,
+                        references=row.nvd_references,
+                        metrics=row.nvd_metrics,
+                        raw_nvd=row.raw_nvd,
                     ),
                 )
                 for row in rows

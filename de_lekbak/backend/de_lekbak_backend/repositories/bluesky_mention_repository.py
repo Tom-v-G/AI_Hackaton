@@ -1,5 +1,6 @@
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from sqlalchemy import case, desc, distinct, func, select, text
 from sqlalchemy.dialects.postgresql import insert
@@ -33,13 +34,24 @@ class EnrichedBlueskyCve:
     latest_mention_at: datetime | None
     top_engagement_score: float
     nvd_found: bool
+    nvd_source_identifier: str | None
+    nvd_vuln_status: str | None
     nvd_severity: str | None
     nvd_base_score: float | None
+    nvd_vector_string: str | None
+    nvd_metric_type: str | None
     nvd_description: str | None
     nvd_published_at: datetime | None
     nvd_modified_at: datetime | None
+    nvd_ingested_at: datetime | None
+    nvd_created_at: datetime | None
+    nvd_updated_at: datetime | None
+    nvd_cwe_ids: list[str]
     affected_vendors: list[str]
     affected_products: list[str]
+    nvd_references: list[dict[str, Any]]
+    nvd_metrics: list[dict[str, Any]]
+    raw_nvd: dict[str, Any] | None
 
 
 class BlueskyMentionRepository:
@@ -132,8 +144,15 @@ class BlueskyMentionRepository:
             .limit(limit)
         )
 
-    async def enriched_cves(self, limit: int = 25) -> list[EnrichedBlueskyCve]:
-        rows = (await self._session.execute(self.build_enriched_cves_query(limit))).mappings().all()
+    async def enriched_cves(
+        self,
+        limit: int = 25,
+        *,
+        nvd_only: bool = False,
+    ) -> list[EnrichedBlueskyCve]:
+        rows = (
+            await self._session.execute(self.build_enriched_cves_query(limit, nvd_only=nvd_only))
+        ).mappings().all()
         return [
             EnrichedBlueskyCve(
                 cve_id=str(row["cve_id"]),
@@ -141,22 +160,34 @@ class BlueskyMentionRepository:
                 latest_mention_at=row["latest_mention_at"],
                 top_engagement_score=float(row["top_engagement_score"] or 0),
                 nvd_found=bool(row["nvd_found"]),
+                nvd_source_identifier=row["nvd_source_identifier"],
+                nvd_vuln_status=row["nvd_vuln_status"],
                 nvd_severity=row["nvd_severity"],
                 nvd_base_score=float(row["nvd_base_score"])
                 if row["nvd_base_score"] is not None
                 else None,
+                nvd_vector_string=row["nvd_vector_string"],
+                nvd_metric_type=row["nvd_metric_type"],
                 nvd_description=row["nvd_description"],
                 nvd_published_at=row["nvd_published_at"],
                 nvd_modified_at=row["nvd_modified_at"],
+                nvd_ingested_at=row["nvd_ingested_at"],
+                nvd_created_at=row["nvd_created_at"],
+                nvd_updated_at=row["nvd_updated_at"],
+                nvd_cwe_ids=list(row["nvd_cwe_ids"] or []),
                 affected_vendors=list(row["affected_vendors"] or []),
                 affected_products=list(row["affected_products"] or []),
+                nvd_references=list(row["nvd_references"] or []),
+                nvd_metrics=list(row["nvd_metrics"] or []),
+                raw_nvd=row["raw_nvd"],
             )
             for row in rows
         ]
 
-    def build_enriched_cves_query(self, limit: int = 25):  # noqa: ANN201
+    def build_enriched_cves_query(self, limit: int = 25, *, nvd_only: bool = False):  # noqa: ANN201
+        where_clause = "WHERE cves.id IS NOT NULL" if nvd_only else ""
         return text(
-            """
+            f"""
             WITH mentioned_cves AS (
                 SELECT
                     unnest(extracted_cves) AS cve_id,
@@ -169,9 +200,41 @@ class BlueskyMentionRepository:
                 SELECT DISTINCT ON (cve_id)
                     cve_id,
                     base_severity,
-                    base_score
+                    base_score,
+                    vector_string,
+                    metric_type
                 FROM cve_metrics
                 ORDER BY cve_id, base_score DESC NULLS LAST
+            ), metric_details AS (
+                SELECT
+                    cve_id,
+                    jsonb_agg(
+                        jsonb_build_object(
+                            'version', version,
+                            'source', source,
+                            'metric_type', metric_type,
+                            'base_score', base_score,
+                            'base_severity', base_severity,
+                            'vector_string', vector_string,
+                            'raw_metric', raw_metric
+                        )
+                        ORDER BY base_score DESC NULLS LAST, version DESC, metric_type
+                    ) AS metrics
+                FROM cve_metrics
+                GROUP BY cve_id
+            ), reference_details AS (
+                SELECT
+                    cve_id,
+                    jsonb_agg(
+                        jsonb_build_object(
+                            'url', url,
+                            'source', source,
+                            'tags', coalesce(tags, ARRAY[]::text[])
+                        )
+                        ORDER BY url
+                    ) AS refs
+                FROM cve_references
+                GROUP BY cve_id
             )
             SELECT
                 mentioned_cves.cve_id,
@@ -179,17 +242,32 @@ class BlueskyMentionRepository:
                 mentioned_cves.latest_mention_at,
                 mentioned_cves.top_engagement_score,
                 cves.id IS NOT NULL AS nvd_found,
+                cves.source_identifier AS nvd_source_identifier,
+                cves.vuln_status AS nvd_vuln_status,
                 best_metrics.base_severity AS nvd_severity,
                 best_metrics.base_score AS nvd_base_score,
+                best_metrics.vector_string AS nvd_vector_string,
+                best_metrics.metric_type AS nvd_metric_type,
                 cves.description_en AS nvd_description,
                 cves.published_at AS nvd_published_at,
                 cves.last_modified AS nvd_modified_at,
+                cves.ingested_at AS nvd_ingested_at,
+                cves.created_at AS nvd_created_at,
+                cves.updated_at AS nvd_updated_at,
+                coalesce(cves.cwe_ids, ARRAY[]::text[]) AS nvd_cwe_ids,
                 coalesce(cves.affected_vendors, ARRAY[]::text[]) AS affected_vendors,
-                coalesce(cves.affected_products, ARRAY[]::text[]) AS affected_products
+                coalesce(cves.affected_products, ARRAY[]::text[]) AS affected_products,
+                coalesce(reference_details.refs, '[]'::jsonb) AS nvd_references,
+                coalesce(metric_details.metrics, '[]'::jsonb) AS nvd_metrics,
+                cves.raw_nvd AS raw_nvd
             FROM mentioned_cves
             LEFT JOIN cves ON cves.cve_id = mentioned_cves.cve_id
             LEFT JOIN best_metrics ON best_metrics.cve_id = cves.id
+            LEFT JOIN metric_details ON metric_details.cve_id = cves.id
+            LEFT JOIN reference_details ON reference_details.cve_id = cves.id
+            {where_clause}
             ORDER BY
+                nvd_found DESC,
                 mentioned_cves.mention_count DESC,
                 mentioned_cves.top_engagement_score DESC,
                 mentioned_cves.latest_mention_at DESC
