@@ -1,4 +1,4 @@
-export type SourceType = "reddit" | "mastodon" | "hacker_news";
+export type SourceType = "reddit" | "bluesky" | "mastodon" | "hacker_news";
 
 export interface SourceLink {
   source_type: SourceType;

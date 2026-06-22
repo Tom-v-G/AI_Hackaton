@@ -1,7 +1,7 @@
 """add reddit cves
 
-Revision ID: 20260622_0002
-Revises: 20260622_0001
+Revision ID: 20260622_0003
+Revises: 20260622_0002
 Create Date: 2026-06-22 00:00:00.000000
 
 """
@@ -12,8 +12,8 @@ from sqlalchemy.dialects import postgresql
 
 from alembic import op
 
-revision: str = "20260622_0002"
-down_revision: str | None = "20260622_0001"
+revision: str = "20260622_0003"
+down_revision: str | None = "20260622_0002"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

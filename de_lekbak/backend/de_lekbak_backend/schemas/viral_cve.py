@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 class SourceType(StrEnum):
     reddit = "reddit"
+    bluesky = "bluesky"
     mastodon = "mastodon"
     hacker_news = "hacker_news"
 

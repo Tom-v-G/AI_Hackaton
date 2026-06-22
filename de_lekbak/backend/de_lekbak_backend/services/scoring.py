@@ -2,6 +2,7 @@ from de_lekbak_backend.schemas.viral_cve import SourceType
 
 SOURCE_TYPE_WEIGHTS: dict[SourceType, float] = {
     SourceType.reddit: 1.0,
+    SourceType.bluesky: 1.0,
     SourceType.mastodon: 1.0,
     SourceType.hacker_news: 1.25,
 }
