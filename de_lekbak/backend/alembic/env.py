@@ -6,8 +6,9 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
+from de_lekbak_backend import models as bluesky_models  # noqa: F401
 from de_lekbak_backend.core.config import get_settings
-from de_lekbak_backend.db import models  # noqa: F401
+from de_lekbak_backend.db import models as db_models  # noqa: F401
 from de_lekbak_backend.db.base import Base
 
 config = context.config
@@ -25,6 +26,7 @@ def run_migrations_offline() -> None:
     context.configure(
         url=get_url(),
         target_metadata=target_metadata,
+        version_table="de_lekbak_alembic_version",
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
@@ -33,7 +35,11 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        version_table="de_lekbak_alembic_version",
+    )
     with context.begin_transaction():
         context.run_migrations()
 
