@@ -1,0 +1,1 @@
+/home/tom/Projects/AI_Hackaton/.opencode/custom/init/README.md
