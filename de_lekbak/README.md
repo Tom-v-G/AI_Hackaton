@@ -11,6 +11,33 @@ The app is intentionally owned by `de_lekbak` and does not import from or requir
 
 ## Quick start
 
+From the `de_lekbak/` directory, run the full local setup after a fresh pull:
+
+```bash
+make setup
+```
+
+This synchronizes backend and frontend dependencies, starts the app-owned Dockerized Postgres database, waits until it is ready, and applies Alembic migrations.
+
+Local Postgres defaults match the backend settings:
+
+- database: `de_lekbak`
+- user: `de_lekbak`
+- password: `de_lekbak`
+- host port: `5432`
+
+Useful setup targets:
+
+```bash
+make backend-setup  # uv sync --all-extras --dev in backend/
+make frontend-setup # npm ci in frontend/
+make db-up          # docker compose up -d postgres
+make db-wait        # wait for Postgres readiness
+make migrate        # uv run alembic upgrade head in backend/
+```
+
+The default setup path is non-destructive; it does not drop or reset the local database volume.
+
 Backend:
 
 ```bash

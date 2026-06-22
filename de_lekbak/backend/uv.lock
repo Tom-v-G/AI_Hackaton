@@ -130,6 +130,12 @@ dev = [
     { name = "ruff" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.14.0,<1.18" },
@@ -144,6 +150,12 @@ requires-dist = [
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32.0,<0.47" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.3.0,<9.1" },
+    { name = "ruff", specifier = ">=0.8.0,<0.15.13" },
+]
 
 [[package]]
 name = "fastapi"
