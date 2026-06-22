@@ -133,6 +133,8 @@ de_lekbak/
   - Follow router → service → repository/schema layering within `de_lekbak/backend/de_lekbak_backend/`.
   - Keep source-type weighting isolated/configurable in a scoring service.
   - Keep NVD enrichment optional and owned inside `de_lekbak/` if implemented.
+  - For database work, use Postgres-owned infrastructure inside `de_lekbak/` and keep migrations owned by `de_lekbak`.
+  - Any story that introduces or alters database models must create Alembic revisions with `--autogenerate` as the starting point, then review/edit the generated revision before committing.
 - Frontend:
   - React 19.
   - Vite.

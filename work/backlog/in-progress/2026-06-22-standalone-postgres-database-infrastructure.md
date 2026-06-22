@@ -60,3 +60,79 @@ Rejected alternatives:
 - Existing viral CVE endpoints continue to work with the current in-memory repository.
 - The implementation contains no imports from `cve-intelligence`, no `app.*` imports copied from the prior project, and no runtime requirement that `cve-intelligence` is running.
 - Validation includes backend tests and linting from `de_lekbak/backend` plus a dependency-boundary check for accidental `cve-intelligence` imports.
+
+## Analysis
+
+### Likely Impact
+
+- Primary implementation lane: `de_lekbak/backend/pyproject.toml` dependencies/settings -> new `de_lekbak_backend.db` infrastructure -> `de_lekbak/backend/alembic*` migration wiring.
+- `de_lekbak/backend/de_lekbak_backend/core/config.py` - already owns `DE_LEKBAK_` settings via `SettingsConfigDict`; extend it with Postgres-only `database_url`, pool sizing, overflow, and SQL echo settings.
+- `de_lekbak/backend/de_lekbak_backend/db/` - likely new owned package for async engine/session setup and ORM base; current backend has no database package.
+- `de_lekbak/backend/alembic.ini` and `de_lekbak/backend/alembic/env.py` - needed because no Alembic setup exists under `de_lekbak/backend`, while acceptance requires `de_lekbak`-owned migration metadata.
+- `de_lekbak/backend/pyproject.toml` / `uv.lock` - add async Postgres and migration dependencies; current dependencies include FastAPI/Pydantic/httpx but not SQLAlchemy, asyncpg, or Alembic.
+
+### Possible Adjacent Touchpoints
+
+- `de_lekbak/backend/tests/test_app.py` - existing tests cover viral endpoints and an import-boundary check; extend or add nearby tests for settings/session infrastructure and ensure copied Alembic/db files do not use `app.*` imports.
+- `de_lekbak/backend/de_lekbak_backend/api/` - only add a shared dependency module if future FastAPI injection needs it now; existing viral endpoints use service dependencies and should not be converted to DB-backed storage in this story.
+- `de_lekbak/backend/README.md` - optional if implementers need to document new database environment variables or Alembic usage for local operation.
+
+### Existing Patterns / Prior Art
+
+- `cve-intelligence/app/db/session.py` - closest async SQLAlchemy pattern: lazy engine creation from settings, `async_sessionmaker`, and request-scoped async session with commit/rollback behavior. Reimplement with `de_lekbak_backend.*` imports.
+- `cve-intelligence/app/db/base.py` - closest ORM base/mixin pattern using `DeclarativeBase`, UUID primary key, and timestamp mixins; useful as owned `de_lekbak` prior art without copying NVD models.
+- `cve-intelligence/alembic/env.py` and `cve-intelligence/alembic.ini` - closest async Alembic setup: async migration runner and `target_metadata = Base.metadata`; must be rewritten to import `de_lekbak_backend.db.base` and any future `de_lekbak` models.
+- `de_lekbak/backend/tests/test_app.py` - existing dependency-boundary prior art already asserts backend source does not import `cve_intelligence` or `app`; expand this pattern for new migration/db files if needed.
+
+### Layer Boundaries
+
+- Touch first: backend configuration, dependency metadata/lockfile, owned database infrastructure package, Alembic config/revisions, and targeted backend tests.
+- Avoid unless evidence emerges: `ViralCveRepository` storage behavior, viral service/API response flow, frontend code, `cve-intelligence/` files, NVD schema/models, ingestion workers/schedulers, and runtime path/import hacks.
+- Repo-grounded fact: current viral flow is API -> `ViralCveService` -> module-level in-memory `ViralCveRepository`, so database infrastructure can be added without changing endpoint behavior.
+
+### Verification Plan
+
+**Unit Tests**:
+
+- Settings tests for `DE_LEKBAK_` database fields, Postgres async URL handling, pool/max-overflow, and SQL echo defaults.
+- Session/base tests that validate the async session dependency yields an `AsyncSession` from the configured factory and rollback/commit behavior can be exercised without requiring `cve-intelligence` imports.
+- Boundary test coverage for new `de_lekbak_backend.db` and Alembic files to reject `cve_intelligence` and `app.*` imports.
+
+**Integration Tests**:
+
+- Existing health and viral CVE endpoint tests should remain green with no database server required, proving this story does not replace the in-memory repository.
+
+**Additional Checks (as applicable)**:
+
+- Generate the initial Alembic revision with autogeneration from `de_lekbak/backend`; review that it targets `de_lekbak` metadata and does not create copied NVD tables.
+- Confirm dependency-boundary validation includes migration/config files outside the Python package if Alembic lives at backend root.
+
+## Implementation handoff (2026-06-22 13:23)
+
+- Completed: added owned async Postgres database infrastructure under `de_lekbak/backend/de_lekbak_backend/db/`, including ORM base/mixins, lazy async engine/session factory, and FastAPI-compatible async session dependency.
+- Completed: extended `DE_LEKBAK_` settings with `database_url`, `database_pool_size`, `database_max_overflow`, and `database_echo` defaults for Postgres async access.
+- Completed: added `sqlalchemy[asyncio]`, `asyncpg`, and `alembic` backend dependencies and refreshed `uv.lock`.
+- Completed: added `de_lekbak`-owned Alembic config/env wiring to `Base.metadata` plus an empty initial baseline revision because this story introduced infrastructure only and no database tables.
+- Completed: expanded backend tests for database settings, ORM metadata, async session commit/rollback behavior, existing endpoint behavior, and dependency-boundary checks across the package plus Alembic files.
+- Validation: `uv run pytest` from `de_lekbak/backend` passed (`9 passed`, one pre-existing Starlette/httpx deprecation warning).
+- Validation: `uv run ruff check .` from `de_lekbak/backend` passed.
+- Validation: `uv run alembic upgrade head --sql` from `de_lekbak/backend` generated offline Postgres SQL for the baseline migration without requiring a database server.
+- Boundary: no runtime imports from `cve-intelligence`, `cve_intelligence`, or `app.*` were added; viral CVE storage remains in-memory.
+- Status: done.
+
+## Validation update (2026-06-22 13:41)
+
+* Validation passed with no regressions found.
+* Gate result: PASS.
+* Baseline checks passed or had no unrelated failures observed: `uv run pytest` passed (`9 passed`, one Starlette/httpx deprecation warning), `uv run ruff check .` passed, and `uv run alembic upgrade head --sql` generated the baseline Postgres migration SQL successfully.
+* Touched-scope coverage: no material regression; touched backend infrastructure is covered by settings, ORM metadata, async session dependency, endpoint, and import-boundary tests in `de_lekbak/backend/tests/test_app.py`.
+* Security review: completed for database configuration, migration wiring, and dependency-boundary scope; no copied `cve-intelligence`, `cve_intelligence`, or `app.*` runtime imports found, and no secrets beyond local default development database credentials were introduced.
+* Retained exploratory artifacts: none; no browser/UI validation was required for this backend-only infrastructure story.
+* Validated checklist items:
+  * Backend actor, `de_lekbak` backend surface: async Postgres dependencies and `DE_LEKBAK_` database settings are present in `pyproject.toml`, `uv.lock`, and `de_lekbak_backend/core/config.py`; forbidden result of non-Postgres or prior-project-owned config was not observed.
+  * Backend actor, database infrastructure surface: `de_lekbak_backend/db/session.py` exposes lazy async engine/session factory and FastAPI-compatible async session dependency with commit/rollback behavior covered by tests; forbidden result of replacing viral storage was not observed.
+  * Backend actor, ORM/Alembic surface: `de_lekbak_backend/db/base.py` provides `Base.metadata` plus shared mixins, and `alembic/env.py` targets that metadata; forbidden result of copied NVD tables was not observed.
+  * Backend actor, migration surface: `alembic/versions/20260622_0001_initial_database_baseline.py` is an empty baseline revision appropriate for an infrastructure-only story, and offline SQL upgrade succeeds; forbidden result of generated NVD schema or missing migration wiring was not observed.
+  * API consumer actor, existing viral CVE API surface: health, viral rankings, and refresh endpoint tests remain green without a database server, proving in-memory behavior still works; forbidden result of DB-required endpoint behavior was not observed.
+  * Boundary reviewer actor, dependency-boundary surface: AST boundary check and tests found no `cve-intelligence`, `cve_intelligence`, or `app.*` imports in `de_lekbak_backend` or Alembic files; forbidden result of requiring `cve-intelligence` at runtime was not observed.
+* Providers covered: `de_lekbak` backend with Postgres-only database configuration.
