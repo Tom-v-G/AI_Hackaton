@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from de_lekbak_backend.core.config import Settings
+from de_lekbak_backend.db import models  # noqa: F401
 from de_lekbak_backend.db import session as db_session
 from de_lekbak_backend.db.base import Base
 from de_lekbak_backend.main import create_app
@@ -75,7 +76,7 @@ def test_database_settings_defaults_are_postgres_async() -> None:
 
 
 def test_orm_base_metadata_is_available_for_alembic() -> None:
-    assert Base.metadata.tables == {}
+    assert "reddit_cves" in Base.metadata.tables
 
 
 def test_async_session_dependency_commits_on_success(monkeypatch: pytest.MonkeyPatch) -> None:
